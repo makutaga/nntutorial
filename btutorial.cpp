@@ -40,7 +40,7 @@ static char id[]="$Id$";
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
+//#include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 
 using namespace boost::numeric::ublas;
@@ -67,23 +67,20 @@ typedef matrix<double> nn_weight_t;  /* type for a connection weight */
 typedef vector<double> nn_uvalue_t;  /* type for net, output, etc. */
 
 
-void randomize_matrix(nn_weight_t &mat, double iwr);
-void read_file(nn_weight_t &pat, char* file);
+void train_network(nn_weight_t &wih, nn_weight_t &who,
+		nn_weight_t &in_p, nn_weight_t &tg_p, double eta);
 double test_network(nn_weight_t &wih, nn_weight_t &who,
 		nn_weight_t &in_p, nn_weight_t &tg_p);
-void calc_layer(nn_weight_t &w,
-		nn_uvalue_t &in_p, nn_uvalue_t &net, nn_uvalue_t &out);
+void prt_output(nn_weight_t &wih, nn_weight_t &who,
+		nn_weight_t &in_p, nn_weight_t &out_p);
 void calc_output(nn_weight_t &wih, nn_weight_t &who,
 		nn_uvalue_t &in_p, nn_uvalue_t &out_o);
 void calc_output(nn_weight_t &wih, nn_weight_t &who,
 		nn_uvalue_t &in_p,
 		nn_uvalue_t &net_h, nn_uvalue_t &net_o,
 		nn_uvalue_t &out_h, nn_uvalue_t &out_o);
-double get_rms(nn_uvalue_t &x, nn_uvalue_t &y);
-void prt_output(nn_weight_t &wih, nn_weight_t &who,
-		nn_weight_t &in_p, nn_weight_t &out_p);
-void train_network(nn_weight_t &wih, nn_weight_t &who,
-		nn_weight_t &in_p, nn_weight_t &tg_p, double eta);
+void calc_layer(nn_weight_t &w,
+		nn_uvalue_t &in_p, nn_uvalue_t &net, nn_uvalue_t &out);
 void calc_delta(nn_weight_t &wih, nn_weight_t &who,
 		nn_uvalue_t &out_h, nn_uvalue_t &out_o,
 		nn_uvalue_t &tg,
@@ -94,8 +91,11 @@ void adj_weight(nn_weight_t &wih, nn_weight_t &who,
 		nn_uvalue_t &out_i, nn_uvalue_t &out_h,
 		nn_uvalue_t &del_h, nn_uvalue_t &del_o,
 		double eta);
+void read_file(nn_weight_t &pat, char* file);
 void save_weight_layer(std::ostream &strm, nn_weight_t &w);
 void save_weight(nn_weight_t &wih, nn_weight_t &who, char* file);
+void randomize_matrix(nn_weight_t &mat, double iwr);
+double get_rms(nn_uvalue_t &x, nn_uvalue_t &y);
 
 int
 main(int argc, char* argv[])
@@ -148,69 +148,30 @@ main(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
+/*---------------------------------------------------------------------*/
 void
-read_file(nn_weight_t &pat, char* fname)
+train_network(nn_weight_t &wih, nn_weight_t &who,
+		nn_weight_t &in_p, nn_weight_t &tg_p, double eta)
 {
-	std::ifstream pstrm(fname);
-	if (pstrm.fail()) {
-		std::cerr << "Cannot open " << fname << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	for (int p = 0; p < pat.size1(); p ++) {
-		for (int i = 0; i < pat.size2(); i ++) {
-			double x;
-
-			pstrm >> x;
-			pat(p, i) = x;
-//			std::cout << x << std::endl;
-		}
-	}
-}
-
-void
-randomize_matrix(nn_weight_t &mat, double iwr)
-{
-	for (int row=0; row < mat.size1(); row ++) {
-		for (int col=0; col < mat.size2(); col ++) {
-			mat(row, col) = (drand48() * 2.0 - 1.0) * iwr;
-		}
-	}
-}
-
-void
-calc_layer(nn_weight_t &w,
-		nn_uvalue_t &in_p, nn_uvalue_t &net, nn_uvalue_t &out)
-{
-	in_p.resize(w.size2());
-	in_p(in_p.size() - 1) = 1.0;  // bias
-	net = prod(w, in_p);
-	for (int h = 0; h < net.size(); h ++) {
-		out(h) = tanh(net(h));
-	}
-}
-
-void
-calc_output(nn_weight_t &wih, nn_weight_t &who,
-		nn_uvalue_t &in_p, nn_uvalue_t &out_o)
-{
-	nn_uvalue_t net_h;
-	nn_uvalue_t net_o;
+	nn_uvalue_t in;
+	nn_uvalue_t tg;
+	nn_uvalue_t net_h(wih.size1());
+	nn_uvalue_t net_o(who.size1());
 	nn_uvalue_t out_h(wih.size1());
+	nn_uvalue_t out_o(who.size1());
+	nn_uvalue_t del_h(wih.size1());
+	nn_uvalue_t del_o(who.size1());
 
-	calc_output(wih, who, in_p, net_h, net_o, out_h, out_o);
+	for (int p = 0; p < in_p.size1(); p ++) {
+		in = matrix_row<nn_weight_t>(in_p, p);
+		tg = matrix_row<nn_weight_t>(tg_p, p);
+		calc_output(wih, who, in, net_h, net_o, out_h, out_o);
+		calc_delta(wih, who, out_h, out_o, tg, del_h, del_o);
+		adj_weight(wih, who, in, out_h, del_h, del_o, eta);
+	}
 }
 
-void
-calc_output(nn_weight_t &wih, nn_weight_t &who,
-		nn_uvalue_t &in_p,
-		nn_uvalue_t &net_h, nn_uvalue_t &net_o,
-		nn_uvalue_t &out_h, nn_uvalue_t &out_o)
-{
-	calc_layer(wih, in_p, net_h, out_h);
-	calc_layer(who, out_h, net_o, out_o);
-}
-
-
+/*---------------------------------------------------------------------*/
 double
 test_network(nn_weight_t &wih, nn_weight_t &who,
 		nn_weight_t &in_p, nn_weight_t &tg_p)
@@ -233,12 +194,7 @@ test_network(nn_weight_t &wih, nn_weight_t &who,
 	return ave_rms;
 }
 
-double
-get_rms(nn_uvalue_t &x, nn_uvalue_t &y)
-{
-	return norm_2(x - y) / sqrt(x.size());
-}
-
+/*---------------------------------------------------------------------*/
 void
 prt_output(nn_weight_t &wih, nn_weight_t &who,
 		nn_weight_t &in_p, nn_weight_t &tg_p)
@@ -263,28 +219,44 @@ prt_output(nn_weight_t &wih, nn_weight_t &who,
 	std::cout << "average of e_rms:" << ave_rms << std::endl;
 }
 
+/*---------------------------------------------------------------------*/
 void
-train_network(nn_weight_t &wih, nn_weight_t &who,
-		nn_weight_t &in_p, nn_weight_t &tg_p, double eta)
+calc_output(nn_weight_t &wih, nn_weight_t &who,
+		nn_uvalue_t &in_p, nn_uvalue_t &out_o)
 {
-	nn_uvalue_t in;
-	nn_uvalue_t tg;
-	nn_uvalue_t net_h(wih.size1());
-	nn_uvalue_t net_o(who.size1());
+	nn_uvalue_t net_h;
+	nn_uvalue_t net_o;
 	nn_uvalue_t out_h(wih.size1());
-	nn_uvalue_t out_o(who.size1());
-	nn_uvalue_t del_h(wih.size1());
-	nn_uvalue_t del_o(who.size1());
 
-	for (int p = 0; p < in_p.size1(); p ++) {
-		in = matrix_row<nn_weight_t>(in_p, p);
-		tg = matrix_row<nn_weight_t>(tg_p, p);
-		calc_output(wih, who, in, net_h, net_o, out_h, out_o);
-		calc_delta(wih, who, out_h, out_o, tg, del_h, del_o);
-		adj_weight(wih, who, in, out_h, del_h, del_o, eta);
+	calc_output(wih, who, in_p, net_h, net_o, out_h, out_o);
+}
+
+/*---------------------------------------------------------------------*/
+void
+calc_output(nn_weight_t &wih, nn_weight_t &who,
+		nn_uvalue_t &in_p,
+		nn_uvalue_t &net_h, nn_uvalue_t &net_o,
+		nn_uvalue_t &out_h, nn_uvalue_t &out_o)
+{
+	calc_layer(wih, in_p, net_h, out_h);
+	calc_layer(who, out_h, net_o, out_o);
+}
+
+/*=================================================================*/
+/*---------------------------------------------------------------------*/
+void
+calc_layer(nn_weight_t &w,
+		nn_uvalue_t &in_p, nn_uvalue_t &net, nn_uvalue_t &out)
+{
+	in_p.resize(w.size2());
+	in_p(in_p.size() - 1) = 1.0;  // bias
+	net = prod(w, in_p);
+	for (int h = 0; h < net.size(); h ++) {
+		out(h) = tanh(net(h));
 	}
 }
 
+/*---------------------------------------------------------------------*/
 void
 calc_delta(nn_weight_t &wih, nn_weight_t &who,
 		nn_uvalue_t &out_h, nn_uvalue_t &out_o,
@@ -300,6 +272,18 @@ calc_delta(nn_weight_t &wih, nn_weight_t &who,
 	}
 }
 
+/*---------------------------------------------------------------------*/
+void
+adj_weight(nn_weight_t &wih, nn_weight_t &who,
+		nn_uvalue_t &out_i, nn_uvalue_t &out_h,
+		nn_uvalue_t &del_h, nn_uvalue_t &del_o,
+		double eta)
+{
+	adj_weight_layer(wih, out_i, del_h, eta);
+	adj_weight_layer(who, out_h, del_o, eta);
+}
+
+/*---------------------------------------------------------------------*/
 void
 adj_weight_layer(nn_weight_t &w, nn_uvalue_t out_pre, nn_uvalue_t del,
 		double eta)
@@ -316,27 +300,28 @@ adj_weight_layer(nn_weight_t &w, nn_uvalue_t out_pre, nn_uvalue_t del,
 	}
 }
 
-void
-adj_weight(nn_weight_t &wih, nn_weight_t &who,
-		nn_uvalue_t &out_i, nn_uvalue_t &out_h,
-		nn_uvalue_t &del_h, nn_uvalue_t &del_o,
-		double eta)
-{
-	adj_weight_layer(wih, out_i, del_h, eta);
-	adj_weight_layer(who, out_h, del_o, eta);
-}
 
+/*---------------------------------------------------------------------*/
 void
-save_weight_layer(std::ostream &strm, nn_weight_t &w)
+read_file(nn_weight_t &pat, char* fname)
 {
-	for (int nxt = 0; nxt < w.size1(); nxt ++) {
-		for (int pre = 0; pre < w.size2(); pre ++) {
-			strm << w(nxt, pre) << std::endl;
+	std::ifstream pstrm(fname);
+	if (pstrm.fail()) {
+		std::cerr << "Cannot open " << fname << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	for (int p = 0; p < pat.size1(); p ++) {
+		for (int i = 0; i < pat.size2(); i ++) {
+			double x;
+
+			pstrm >> x;
+			pat(p, i) = x;
+//			std::cout << x << std::endl;
 		}
 	}
-	strm << std::endl;
 }
 
+/*---------------------------------------------------------------------*/
 void
 save_weight(nn_weight_t &wih, nn_weight_t &who, char* file)
 {
@@ -352,5 +337,35 @@ save_weight(nn_weight_t &wih, nn_weight_t &who, char* file)
 		<< who.size1() << std::endl;
 	save_weight_layer(wstr, wih);
 	save_weight_layer(wstr, who);
+}
+
+/*---------------------------------------------------------------------*/
+void
+save_weight_layer(std::ostream &strm, nn_weight_t &w)
+{
+	for (int nxt = 0; nxt < w.size1(); nxt ++) {
+		for (int pre = 0; pre < w.size2(); pre ++) {
+			strm << w(nxt, pre) << std::endl;
+		}
+	}
+	strm << std::endl;
+}
+
+/*---------------------------------------------------------------------*/
+void
+randomize_matrix(nn_weight_t &mat, double iwr)
+{
+	for (int row=0; row < mat.size1(); row ++) {
+		for (int col=0; col < mat.size2(); col ++) {
+			mat(row, col) = (drand48() * 2.0 - 1.0) * iwr;
+		}
+	}
+}
+
+/*---------------------------------------------------------------------*/
+double
+get_rms(nn_uvalue_t &x, nn_uvalue_t &y)
+{
+	return norm_2(x - y) / sqrt(x.size());
 }
 
