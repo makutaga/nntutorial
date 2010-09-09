@@ -11,6 +11,7 @@
 static char id[]="$Id$";
 
 
+#if 0
 /*** Function List ***/
 /* ---- level 2 NN Library ---- */
 void   train_network( );   /* training NN (1 iter.)                        */
@@ -31,11 +32,66 @@ void   load_weight( );     /* load weights (DO IT YOURSELF)                */
 void   randomize_vect( );  /* randomize vector                             */
 double get_rms( );         /* calc. rms between 2 vectors                  */
 void   prt_vector( );      /* fprintf a vector                             */
+#endif
 
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <errno.h>
+
+
+/*** Function Prototype ***/
+/* ---- level 2 NN Library ---- */
+/* training NN (1 iter.)                        */
+void train_network(int inp, int hid, int out,
+		double *wih, double *who,
+		double *input_p, double *target_p, int p_num, double eta);
+/* test NN and calcurate rms error              */
+double test_network(int inp, int hid, int out,
+		double *wih, double *who,
+		double *t_input, double *t_target, int t_num);
+/* print weight value                           */
+void prt_weight(int inp, int hid, int out, double *wih, double *who);
+/* test NN and print NN's output                */
+void prt_output(int inp, int hid, int out,
+		double *wih, double *who, double *input_p, double *target_p, int p_num);
+/* calc. NN output vector for 1 pattern         */
+void calc_output(int inp, int hid, int out,
+		double *wih, double *who, double *input_p, double *dest);
+
+/* ---- level 1 NN Library ---- */
+/* forward propagation                          */
+void forward_prop(int inp, int hid, int out,
+		double *wih, double *who,
+		double *input_p, double *net_h, double *net_o,
+		double *out_h, double *out_o);
+/* forward propagation with tanh units         */
+void forward_tanh(int prv, int nxt, double *w,
+		double *prv_out, double *net, double *nxt_out);
+/* forward propagation with linear units (NOT YET)*/
+/* calc. delta                                  */
+void calc_delta(int inp, int hid, int out,
+		double *wih, double *who,
+		double *out_h, double *out_o, double *tg, double *del_h, double *del_o);
+/* alternate weights                            */
+void adj_weight(int inp, int hid, int out,
+		double *wih, double *who,
+		double *out_i, double *out_h, double *del_h, double *del_o, double eta);
+/* read a file into a vector                    */
+void read_file(double *dat, int p_num, int u_num, char *file);
+/* save weights                                 */
+void save_weight(int inp, int hid, int out,
+		double *wih, double *who, char *file);
+/* load weights (DO IT YOURSELF)                */
+void load_weight(int inp, int hid, int out,
+		double *wih, double *who, char *file);
+/* ---- vector Library ---- */
+/* randomize vector                             */
+void randomize_vect(double *w, int n, double iwr);
+/* calc. rms between 2 vectors                  */
+double get_rms(double *x, double *y, int n);
+/* fprintf a vector                             */
+void prt_vector(FILE *fp, char *fmt, double *dat, int n);
 
 #ifndef EXIT_SUCCESS
 #define EXIT_SUCCESS	0
