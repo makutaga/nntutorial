@@ -1,13 +1,13 @@
-/*
-	3 Layer Neural Network Simulator ( Tutorial Version )
-	Training Algorithm : Back Propagation ( Jump Every Time Version )
-
-	This source is maintained in the 'svn (Subversion)' version control system.
-	Based source in CVS repository is
-	"Id: tutorial.c,v 1.9 2000/09/16 03:17:18 makutaga Exp" 
-
-	$HeadURL$
-*/
+/**	3 Layer Neural Network Simulator ( Tutorial Version )
+ *
+ *	Training Algorithm : Back Propagation ( Jump Every Time Version )
+ *
+ *	This source is maintained in the 'svn (Subversion)' version control system.
+ *	Based source in CVS repository is
+ *	"Id: tutorial.c,v 1.9 2000/09/16 03:17:18 makutaga Exp" 
+ *
+ *	$HeadURL$
+ */
 static char id[]="$Id$";
 
 
@@ -121,24 +121,27 @@ void prt_vector(FILE *fp, char *fmt, double *dat, int n);
 */
 #define WeightValue(w,p_size,n_size,from,to) (*((w)+(from)+(to)*(p_size+1)))
 
-#define INP 3					/* number of input units  */
-#define HID 2					/*           hidden units */
-#define OUT 1					/*           output units */
+#define INP 3					/**< number of input units  */
+#define HID 2					/**< number of hidden units */
+#define OUT 1					/**< number of output units */
 
-#define EX_NUM 8           		/* number of input patterns */
-#define MAX_ITER	10000		/* maximum of iteration */
-#define MIN_ERROR	0.001		/* destination of error rms */
+#define EX_NUM 8           		/**< number of input patterns */
+#define MAX_ITER	10000		/**< maximum of iteration */
+#define MIN_ERROR	0.001		/**< destination of error rms */
 
-#define IWR			1.0			/* amplitude of initial weight */
-#define ETA			0.1			/* training rate (eta) */
-#define RND_SEED	1			/* random seed ( used srand48 ) */
+#define IWR			1.0			/**< amplitude of initial weight */
+#define ETA			0.1			/**< training rate (eta) */
+#define RND_SEED	1			/**< random seed ( used srand48 ) */
 
-#define EX_FILE "parity.in"		/* filename of input pattern */
-#define TG_FILE "parity.tg"		/* filename of target */
-#define WT_FILE "parity.wt"		/* filename of weight data */
-#define RMS_FILE "parity.rms"	/* filename of error change */
+#define EX_FILE "parity.in"		/**< filename of input pattern */
+#define TG_FILE "parity.tg"		/**< filename of target */
+#define WT_FILE "parity.wt"		/**< filename of weight data */
+#define RMS_FILE "parity.rms"	/**< filename of error change */
 
 /*========================================================================*/
+/**
+ * main function
+ */
 int
 main (int argc, char *argv[])
 {    
@@ -189,6 +192,19 @@ main (int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 /*---------------------------------------------------------------------*/
+/** Training the network
+ *
+ * The network is trained using the training pattern set
+ * @param inp  number of input units
+ * @param hid  number of hidden units
+ * @param out  number of output untis
+ * @param wih  pointer to connection weight vector between input and hidden layer
+ * @param who  pointer to connection weight vector between hidden and output layer
+ * @param input_p pointer to input pattern vector
+ * @param target_p pointer to target pattern vector
+ * @param p_num  number of patterns
+ * @param eta  training rate 
+ */
 void
 train_network(int inp, int hid, int out,
 	double *wih, double *who, double *input_p, double *target_p,
