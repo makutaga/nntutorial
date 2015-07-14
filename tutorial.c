@@ -285,6 +285,16 @@ prt_weight(int inp, int hid, int out, double *wih, double *who)
 	}
 }
 /*---------------------------------------------------------------*/
+/**
+ * @param inp number of input units
+ * @param hid number of hidden units
+ * @param out number of output units
+ * @param wih  pointer to a connection weight vector between input and hidden layer
+ * @param who  pointer to a connection weight vector between hidden and output layer
+ * @param input_p  pointer to the input pattern array
+ * @param target_p pointer to the target output array
+ * @param p_num    number of patterns
+ */
 void
 prt_output(int inp, int hid, int out,
 	double *wih, double *who, double *input_p, double *target_p,
@@ -309,6 +319,15 @@ prt_output(int inp, int hid, int out,
 	}
 }
 /*----------------------------------------------------------------*/
+/**
+ * @param inp number of input units
+ * @param hid number of hidden units
+ * @param out number of output units
+ * @param wih  pointer to a connection weight vector between input and hidden layer
+ * @param who  pointer to a connection weight vector between hidden and output layer
+ * @param input_p  pointer to an array of one input pattern
+ * @param dest    pointer of destination array to store the output
+ */
 void
 calc_output(int inp,int hid, int out,
 	double *wih, double *who, double *input_p, double *dest )
