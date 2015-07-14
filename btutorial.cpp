@@ -1,5 +1,7 @@
-/*
+/**
+   \file
 	3 Layer Neural Network Simulator ( Tutorial Version ) with Boost
+
 	Training Algorithm : Back Propagation ( Jump Every Time Version )
 
 	This program is a 'Boost version' of tutorial.c.

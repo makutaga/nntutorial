@@ -1,12 +1,12 @@
-/**	3 Layer Neural Network Simulator ( Tutorial Version )
+/**	\file
+ * 3 Layer Neural Network Simulator ( Tutorial Version )
  *
  *	Training Algorithm : Back Propagation ( Jump Every Time Version )
  *
- *	This source is maintained in the 'svn (Subversion)' version control system.
- *	Based source in CVS repository is
- *	"Id: tutorial.c,v 1.9 2000/09/16 03:17:18 makutaga Exp" 
+ *	This source is maintained in the GitHub
  *
- *	$HeadURL$
+ *  \author Masatake Akutagawa
+ *
  */
 static char id[]="$Id$";
 
@@ -42,65 +42,66 @@ void   prt_vector( );      /* fprintf a vector                             */
 
 /*** Function Prototype ***/
 /* ---- level 2 NN Library ---- */
-/* training NN (1 iter.)                        */
+/** training NN (1 iter.)                        */
 void train_network(int inp, int hid, int out,
 		double *wih, double *who,
 		double *input_p, double *target_p, int p_num, double eta);
-/* test NN and calcurate rms error              */
+/** test NN and calcurate rms error              */
 double test_network(int inp, int hid, int out,
 		double *wih, double *who,
 		double *t_input, double *t_target, int t_num);
-/* print weight value                           */
+/** Output connection weights to standard output*/
 void prt_weight(int inp, int hid, int out, double *wih, double *who);
-/* test NN and print NN's output                */
+/** test NN and print NN's output                */
 void prt_output(int inp, int hid, int out,
 		double *wih, double *who, double *input_p, double *target_p, int p_num);
-/* calc. NN output vector for 1 pattern         */
+/** calculate NN output vector for 1 pattern         */
 void calc_output(int inp, int hid, int out,
 		double *wih, double *who, double *input_p, double *dest);
 
 /* ---- level 1 NN Library ---- */
-/* forward propagation                          */
+/** forward propagation                          */
 void forward_prop(int inp, int hid, int out,
 		double *wih, double *who,
 		double *input_p, double *net_h, double *net_o,
 		double *out_h, double *out_o);
-/* forward propagation with tanh units         */
+/** forward propagation with tanh units         */
 void forward_tanh(int prv, int nxt, double *w,
 		double *prv_out, double *net, double *nxt_out);
-/* forward propagation with linear units (NOT YET)*/
-/* calc. delta                                  */
+/** forward propagation with linear units (NOT YET)*/
+/** calc. delta                                  */
 void calc_delta(int inp, int hid, int out,
 		double *wih, double *who,
 		double *out_h, double *out_o, double *tg, double *del_h, double *del_o);
-/* alternate weights                            */
+/** alternate weights                            */
 void adj_weight(int inp, int hid, int out,
 		double *wih, double *who,
 		double *out_i, double *out_h, double *del_h, double *del_o, double eta);
-/* read a file into a vector                    */
+/** read a file into a vector                    */
 void read_file(double *dat, int p_num, int u_num, char *file);
-/* save weights                                 */
+/** save weights                                 */
 void save_weight(int inp, int hid, int out,
 		double *wih, double *who, char *file);
-/* load weights (DO IT YOURSELF)                */
+/** load weights (DO IT YOURSELF)                */
 void load_weight(int inp, int hid, int out,
 		double *wih, double *who, char *file);
 /* ---- vector Library ---- */
-/* randomize vector                             */
+/** randomize vector                             */
 void randomize_vect(double *w, int n, double iwr);
-/* calc. rms between 2 vectors                  */
+/** calculate rms difference between 2 vectors                  */
 double get_rms(double *x, double *y, int n);
-/* fprintf a vector                             */
+/** fprintf a vector                             */
 void prt_vector(FILE *fp, char *fmt, double *dat, int n);
 
 #ifndef EXIT_SUCCESS
-#define EXIT_SUCCESS	0
+#define EXIT_SUCCESS	0		/**< Exit status. The program finished successfuly */
 #endif
 #ifndef EXIT_FAILURE
-#define EXIT_FAILURE	1
+#define EXIT_FAILURE	1		/**< Exit status. The program finished with errors */
 #endif
 
-/*
+/**
+  \def BIAS
   If you don't need the bias units,
   comment out following line.
 */
@@ -112,12 +113,15 @@ void prt_vector(FILE *fp, char *fmt, double *dat, int n);
 #define LINEAR_OUTPUT
 */
 
-/*
+/**
+   \def WeightValue(w, p_size, n_size, from, to)
 	To get weight value from Weight Array ....
-	    w[ from + to * (p_size + 1 )]
-			from    : unit No. of previous layer
-			to      : unit No. of next layer
-			p_size  : No. of all units in previous layer ( except bias unit )
+	    w[ \a from + \a to * (\a p_size + 1 )]
+			@param w       : pointer to the connection weight vector
+			@param p_size  : number of units in previous layer ( except bias unit )
+			@param n_size  : number of units in next layer (not used)
+			@param from    : unit index of previous layer
+			@param to      : unit index of next layer
 */
 #define WeightValue(w,p_size,n_size,from,to) (*((w)+(from)+(to)*(p_size+1)))
 
@@ -198,8 +202,8 @@ main (int argc, char *argv[])
  * @param inp  number of input units
  * @param hid  number of hidden units
  * @param out  number of output untis
- * @param wih  pointer to connection weight vector between input and hidden layer
- * @param who  pointer to connection weight vector between hidden and output layer
+ * @param wih  pointer to a connection weight vector between input and hidden layer
+ * @param who  pointer to a connection weight vector between hidden and output layer
  * @param input_p pointer to input pattern vector
  * @param target_p pointer to target pattern vector
  * @param p_num  number of patterns
@@ -225,24 +229,46 @@ train_network(int inp, int hid, int out,
 	}
 }
 /*----------------------------------------------------------------*/
+/** Test the network
+ *
+ * The network is trained using a pattern set
+ * @param inp number of input units
+ * @param hid number of hidden units
+ * @param out number of output units
+ * @param wih  pointer to a connection weight vector between input and hidden layer
+ * @param who  pointer to a connection weight vector between hidden and output layer
+ * @param input_p pointer to input pattern vector
+ * @param target_p pointer to target pattern vector
+ * @param p_num  number of patterns
+ * @return average of root mean square error
+ */
 double
 test_network(int inp, int hid, int out,
-	double *wih, double *who, double *t_input, double *t_target, int t_num)
+	double *wih, double *who, double *input_p, double *target_p, int p_num)
 {
 	int t;
 	double sum_rms = 0.0;
 	double ave_rms;
 	double output[OUT];
 
-	for (t = 0 ; t < t_num ; t ++) {
-		calc_output(inp, hid, out, wih, who, &t_input[t*inp], output);
-		sum_rms	+= get_rms(output, &t_target[t*out], out);
+	for (t = 0 ; t < p_num ; t ++) {
+		calc_output(inp, hid, out, wih, who, &input_p[t*inp], output);
+		sum_rms	+= get_rms(output, &target_p[t*out], out);
 	}
-	ave_rms	= sum_rms / (double)t_num;
+	ave_rms	= sum_rms / (double)p_num;
 
 	return ave_rms;
 }
 /*---------------------------------------------------------------*/
+/** Output connection weights to standard output
+ *
+ * @param inp number of input units
+ * @param hid number of hidden units
+ * @param out number of output units
+ * @param wih  pointer to a connection weight vector between input and hidden layer
+ * @param who  pointer to a connection weight vector between hidden and output layer
+ *
+ */
 void
 prt_weight(int inp, int hid, int out, double *wih, double *who)
 {
