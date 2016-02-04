@@ -1,12 +1,16 @@
 /**	\file
- * 3 Layer Neural Network Simulator ( Tutorial Version )
+ * \~english 3 Layer Neural Network Simulator ( Tutorial Version )
  *
  *	Training Algorithm : Back Propagation ( Jump Every Time Version )
  *
  *	This source is maintained in the GitHub
  *
+ *  \~japanese 3層ニューラルネットワークシミュレータ（チュートリアル版）
+ *  
+ *  \~
  *  \author Masatake Akutagawa
  *
+ * \~japanese グローバル変数は極力使わない
  */
 static char id[]="$Id$";
 
@@ -125,22 +129,22 @@ void prt_vector(FILE *fp, char *fmt, double *dat, int n);
 */
 #define WeightValue(w,p_size,n_size,from,to) (*((w)+(from)+(to)*(p_size+1)))
 
-#define INP 3					/**< number of input units  */
-#define HID 2					/**< number of hidden units */
-#define OUT 1					/**< number of output units */
+#define INP 3					/**< \~english number of input units  \~japanese 入力層ユニット数 */
+#define HID 2					/**< \~english number of hidden units \~japanese 中間層ユニット数 */
+#define OUT 1					/**< \~english number of output units \~japanese 出力層ユニット数 */
 
-#define EX_NUM 8           		/**< number of input patterns */
-#define MAX_ITER	10000		/**< maximum of iteration */
-#define MIN_ERROR	0.001		/**< destination of error rms */
+#define EX_NUM 8           		/**< \~english number of input patterns \~japanese 学習パターン数 */
+#define MAX_ITER	10000		/**< \~english maximum of iteration \~japanese 最大学習回数 */
+#define MIN_ERROR	0.001		/**< \~english destination of error rms \~japanese 最小誤差（rms）*/
 
-#define IWR			1.0			/**< amplitude of initial weight */
-#define ETA			0.1			/**< training rate (eta) */
-#define RND_SEED	1			/**< random seed ( used srand48 ) */
+#define IWR			1.0			/**< \~english amplitude of initial weight \~japanese 結合荷重の初期値の幅*/
+#define ETA			0.1			/**< \~english training rate (eta) \~japanese 学習係数*/
+#define RND_SEED	1			/**< \~english random seed ( used srand48 ) \~japanese 乱数の種 */
 
-#define EX_FILE "parity.in"		/**< filename of input pattern */
-#define TG_FILE "parity.tg"		/**< filename of target */
-#define WT_FILE "parity.wt"		/**< filename of weight data */
-#define RMS_FILE "parity.rms"	/**< filename of error change */
+#define EX_FILE "parity.in"		/**< \~english filename of input pattern \~japanese 学習パターンの入力ベクトルファイル */
+#define TG_FILE "parity.tg"		/**< \~english filename of target \~japanese 学習パターンの目標出力ベクトルファイル */
+#define WT_FILE "parity.wt"		/**< \~english filename of weight data \~japanese 結合荷重ファイル */
+#define RMS_FILE "parity.rms"	/**< \~english filename of error change \~japanese 誤差（平均rms）を保存するファイル*/
 
 /*========================================================================*/
 /**
